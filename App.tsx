@@ -1,5 +1,5 @@
 
-import React, { useState, lazy, Suspense } from 'react';
+import React, { useState } from 'react';
 import { UserRole } from './types';
 import { 
   User, 
@@ -10,22 +10,13 @@ import {
   Globe,
   Bell,
   ShieldCheck,
-  Zap,
-  Loader2
+  Zap
 } from 'lucide-react';
 
-// Optimized Lazy Imports
-const RetailerModule = lazy(() => import('./components/RetailerModule'));
-const ConsumerModule = lazy(() => import('./components/ConsumerModule'));
-const DriverModule = lazy(() => import('./components/DriverModule'));
-const AdminModule = lazy(() => import('./components/AdminModule'));
-
-const LoadingFallback = () => (
-  <div className="min-h-[60vh] flex flex-col items-center justify-center p-12 text-slate-400">
-    <div className="w-16 h-16 border-4 border-slate-200 border-t-indigo-600 rounded-full animate-spin mb-4"></div>
-    <p className="text-[10px] font-black uppercase tracking-[0.3em]">Igniting Engine...</p>
-  </div>
-);
+import RetailerModule from './components/RetailerModule';
+import ConsumerModule from './components/ConsumerModule';
+import DriverModule from './components/DriverModule';
+import AdminModule from './components/AdminModule';
 
 const App: React.FC = () => {
   const [role, setRole] = useState<UserRole | 'ADMIN' | null>(null);
@@ -80,30 +71,59 @@ const App: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 gap-4">
-            {[
-              { id: UserRole.RETAILER, label: t.retailer, sub: t.retailerSub, icon: Store, color: 'emerald' },
-              { id: UserRole.CONSUMER, label: t.consumer, sub: t.consumerSub, icon: User, color: 'blue' },
-              { id: UserRole.DRIVER, label: t.driver, sub: t.driverSub, icon: Truck, color: 'orange' }
-            ].map(item => (
-              <button 
-                key={item.id}
-                onClick={() => setRole(item.id)}
-                className="w-full group relative p-0.5 rounded-[32px] transition-all hover:scale-[1.02] active:scale-95"
-              >
-                <div className="relative bg-slate-900/40 backdrop-blur-xl border border-white/10 p-6 rounded-[31px] flex items-center justify-between">
-                  <div className="flex items-center gap-5">
-                    <div className={`bg-${item.color}-500/10 p-4 rounded-2xl text-${item.color}-400 border border-${item.color}-500/20 shadow-lg`}>
-                      <item.icon size={24} />
-                    </div>
-                    <div className="text-left">
-                      <span className="block font-black text-white text-lg tracking-tight uppercase">{item.label}</span>
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{item.sub}</span>
-                    </div>
+            <button 
+              onClick={() => setRole(UserRole.RETAILER)}
+              className="w-full group relative p-0.5 rounded-[32px] transition-all hover:scale-[1.02] active:scale-95"
+            >
+              <div className="relative bg-slate-900/40 backdrop-blur-xl border border-white/10 p-6 rounded-[31px] flex items-center justify-between">
+                <div className="flex items-center gap-5">
+                  <div className="bg-emerald-500/10 p-4 rounded-2xl text-emerald-400 border border-emerald-500/20 shadow-lg">
+                    <Store size={24} />
                   </div>
-                  <ChevronRight className="text-slate-600 group-hover:text-white group-hover:translate-x-1 transition-all" />
+                  <div className="text-left">
+                    <span className="block font-black text-white text-lg tracking-tight uppercase">{t.retailer}</span>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t.retailerSub}</span>
+                  </div>
                 </div>
-              </button>
-            ))}
+                <ChevronRight className="text-slate-600 group-hover:text-white group-hover:translate-x-1 transition-all" />
+              </div>
+            </button>
+
+            <button 
+              onClick={() => setRole(UserRole.CONSUMER)}
+              className="w-full group relative p-0.5 rounded-[32px] transition-all hover:scale-[1.02] active:scale-95"
+            >
+              <div className="relative bg-slate-900/40 backdrop-blur-xl border border-white/10 p-6 rounded-[31px] flex items-center justify-between">
+                <div className="flex items-center gap-5">
+                  <div className="bg-blue-500/10 p-4 rounded-2xl text-blue-400 border border-blue-500/20 shadow-lg">
+                    <User size={24} />
+                  </div>
+                  <div className="text-left">
+                    <span className="block font-black text-white text-lg tracking-tight uppercase">{t.consumer}</span>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t.consumerSub}</span>
+                  </div>
+                </div>
+                <ChevronRight className="text-slate-600 group-hover:text-white group-hover:translate-x-1 transition-all" />
+              </div>
+            </button>
+
+            <button 
+              onClick={() => setRole(UserRole.DRIVER)}
+              className="w-full group relative p-0.5 rounded-[32px] transition-all hover:scale-[1.02] active:scale-95"
+            >
+              <div className="relative bg-slate-900/40 backdrop-blur-xl border border-white/10 p-6 rounded-[31px] flex items-center justify-between">
+                <div className="flex items-center gap-5">
+                  <div className="bg-orange-500/10 p-4 rounded-2xl text-orange-400 border border-orange-500/20 shadow-lg">
+                    <Truck size={24} />
+                  </div>
+                  <div className="text-left">
+                    <span className="block font-black text-white text-lg tracking-tight uppercase">{t.driver}</span>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t.driverSub}</span>
+                  </div>
+                </div>
+                <ChevronRight className="text-slate-600 group-hover:text-white group-hover:translate-x-1 transition-all" />
+              </div>
+            </button>
 
             <button 
               onClick={() => setRole('ADMIN')}
@@ -152,12 +172,10 @@ const App: React.FC = () => {
       </header>
 
       <main className="max-w-screen-md mx-auto min-h-[calc(100vh-80px)]">
-        <Suspense fallback={<LoadingFallback />}>
-          {role === UserRole.RETAILER && <RetailerModule lang={lang} />}
-          {role === UserRole.CONSUMER && <ConsumerModule lang={lang} />}
-          {role === UserRole.DRIVER && <DriverModule lang={lang} />}
-          {role === 'ADMIN' && <AdminModule lang={lang} />}
-        </Suspense>
+        {role === UserRole.RETAILER && <RetailerModule lang={lang} />}
+        {role === UserRole.CONSUMER && <ConsumerModule lang={lang} />}
+        {role === UserRole.DRIVER && <DriverModule lang={lang} />}
+        {role === 'ADMIN' && <AdminModule lang={lang} />}
       </main>
     </div>
   );

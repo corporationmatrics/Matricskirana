@@ -2,10 +2,7 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
 const getAiClient = () => {
-  if (!process.env.API_KEY) {
-    console.error("API_KEY is missing from environment variables.");
-  }
-  return new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+  return new GoogleGenAI({ apiKey: process.env.API_KEY });
 };
 
 function extractJson(text: string | undefined) {
