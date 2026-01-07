@@ -5,7 +5,7 @@ import {
   Plus, Minus, X, CreditCard, Banknote, ArrowRight, Sparkles, 
   AlertTriangle, History, Receipt, Truck, Share2, Zap, LayoutGrid,
   TrendingUp, TrendingDown, ArrowUpRight, Box, Layers, Gauge, ChevronLeft, ChevronRight, CheckCircle2, Download,
-  CalendarDays, CalendarRange, Calendar
+  CalendarDays, CalendarRange, Calendar, Trash2
 } from 'lucide-react';
 import UdhaarLedger from './UdhaarLedger';
 import VoiceAssistant from './VoiceAssistant';
@@ -27,6 +27,10 @@ const RetailerModule: React.FC<Props> = ({ lang }) => {
   const [loadingAnalysis, setLoadingAnalysis] = useState<any>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [recentBill, setRecentBill] = useState<Bill | null>(null);
+  
+  // New: Cart state for manual and voice additions
+  const [pendingSale, setPendingSale] = useState<BillItem[]>([]);
+  const [showCart, setShowCart] = useState(false);
 
   const t = {
     en: { 
@@ -35,19 +39,20 @@ const RetailerModule: React.FC<Props> = ({ lang }) => {
       catValue: "Category Value", back: "Back to Categories", items: "items",
       saleSuccess: "Sale Recorded!", viewReceipt: "View Receipt", share: "Share", close: "Close",
       total: "Total", billId: "Bill ID", date: "Date", noSales: "No sales recorded yet.",
-      performance: "Sales Performance", daySale: "Today", weekSale: "Weekly", monthSale: "Monthly", yearSale: "Annual"
+      performance: "Sales Performance", daySale: "Today", weekSale: "Weekly", monthSale: "Monthly", yearSale: "Annual",
+      cart: "Current Sale", completeSale: "Finalize & Pay", emptyCart: "Sale is empty"
     },
     hi: { 
-      inventory: "स्टॉक", udhaar: "उधार", distributor: "सप्लाई हब", history: "बिक्री",
+      inventory: "स्टॉक", udhaar: "उधार", distributor: "सप्लाई मब", history: "बिक्री",
       broadcast: "स्मार्ट रिऑर्डर", capacity: "क्षमता इंजन", loadFactor: "ट्रक लोड",
       catValue: "कुल कीमत", back: "श्रेणियों पर वापस", items: "आइटम",
       saleSuccess: "बिक्री दर्ज की गई!", viewReceipt: "रसीद देखें", share: "शेयर", close: "बंद करें",
       total: "कुल", billId: "बिल आईडी", date: "तारीख", noSales: "अभी तक कोई बिक्री दर्ज नहीं है।",
-      performance: "बिक्री रिपोर्ट", daySale: "आज", weekSale: "साप्ताहिक", monthSale: "मासिक", yearSale: "वार्षिक"
+      performance: "बिक्री रिपोर्ट", daySale: "आज", weekSale: "साप्ताहिक", monthSale: "मासिक", yearSale: "वार्षिक",
+      cart: "वर्तमान बिक्री", completeSale: "बिल पक्का करें", emptyCart: "कोई सामान नहीं"
     }
   }[lang];
 
-  // Group items by category and calculate values
   const categoryStats = useMemo(() => {
     const groups: Record<string, { value: number; count: number; lowStock: number }> = {};
     inventory.forEach(item => {
@@ -61,20 +66,13 @@ const RetailerModule: React.FC<Props> = ({ lang }) => {
     return Object.entries(groups).map(([name, stat]) => ({ name, ...stat }));
   }, [inventory]);
 
-  // Performance analytics
   const salesStats = useMemo(() => {
     const now = new Date();
     const today = now.toLocaleDateString();
-    
-    // Simple mock logic for periods (in a real app, use better date libs)
     const dayTotal = bills.filter(b => b.date === today).reduce((s, b) => s + b.total, 0);
-    
-    // For week, month, year, we'd ideally parse strings properly
-    // This is a simplified demo-ready calculation
     const weekTotal = bills.slice(0, 4).reduce((s, b) => s + b.total, 0); 
     const monthTotal = bills.slice(0, 5).reduce((s, b) => s + b.total, 0);
     const yearTotal = bills.reduce((s, b) => s + b.total, 0);
-
     return { dayTotal, weekTotal, monthTotal, yearTotal };
   }, [bills]);
 
@@ -89,30 +87,71 @@ const RetailerModule: React.FC<Props> = ({ lang }) => {
     return items;
   }, [inventory, selectedCategory, searchTerm]);
 
-  const runCapacityCheck = async () => {
-    const lowStockItems = inventory.filter(i => i.stock < 20);
-    const analysis = await getLogisticsIntelligence(lowStockItems, 200);
-    setLoadingAnalysis(analysis);
+  const cartTotal = pendingSale.reduce((acc, item) => acc + (item.price * item.qty), 0);
+
+  const addToSale = (product: Product) => {
+    setPendingSale(prev => {
+      const existing = prev.find(i => i.sku === product.sku);
+      if (existing) {
+        return prev.map(i => i.sku === product.sku ? { ...i, qty: i.qty + 1 } : i);
+      }
+      return [...prev, { sku: product.sku, name: product.name, qty: 1, price: product.price, unit: product.unit }];
+    });
+    setShowCart(true);
   };
 
-  const handleBroadcast = () => {
-    const newOrder: DistributorOrder = {
-      id: `PO-${Date.now().toString().slice(-4)}`,
-      distributorName: 'Pending Response',
-      status: 'Broadcast',
-      totalAmount: 0,
-      date: new Date().toISOString().split('T')[0],
-      items: inventory.filter(i => i.stock < 20).map(i => ({name: i.name, qty: 50})),
-      loadFactor: loadingAnalysis?.loadFactor || 0.45
+  const removeFromSale = (sku: string) => {
+    setPendingSale(prev => prev.filter(i => i.sku !== sku));
+  };
+
+  const updateCartQty = (sku: string, delta: number) => {
+    setPendingSale(prev => prev.map(i => {
+      if (i.sku === sku) {
+        const newQty = Math.max(1, i.qty + delta);
+        return { ...i, qty: newQty };
+      }
+      return i;
+    }));
+  };
+
+  const finalizeSale = (paymentMode: 'CASH' | 'UDHAAR' = 'CASH') => {
+    if (pendingSale.length === 0) return;
+
+    // 1. Deduct Stock
+    setInventory(prev => prev.map(p => {
+      const soldItem = pendingSale.find(bi => bi.sku === p.sku);
+      if (soldItem) return { ...p, stock: Math.max(0, p.stock - soldItem.qty) };
+      return p;
+    }));
+
+    // 2. Create Bill
+    const newBill: Bill = {
+      id: `BILL-${Math.floor(1000 + Math.random() * 9000)}`,
+      date: new Date().toLocaleDateString(),
+      items: [...pendingSale],
+      total: cartTotal,
+      paymentMode, 
+      status: paymentMode === 'CASH' ? 'paid' : 'pending',
+      shopName: MOCK_RETAILERS[0].name
     };
-    setOrders([newOrder, ...orders]);
+
+    setBills([newBill, ...bills]);
+    setRecentBill(newBill);
+    setPendingSale([]);
+    setShowCart(false);
   };
 
   const handleVoiceFinalize = (sessionItems: any[], intent: string) => {
-    if (sessionItems.length === 0) return;
+    if (sessionItems.length === 0 && pendingSale.length === 0) return;
 
-    // 1. Map session items to real products in inventory and calculate bill items
-    const billItems: BillItem[] = sessionItems.map(item => {
+    // If intent is finalize, we just close the current cart if it exists
+    if (intent === 'finalize_sale') {
+      finalizeSale();
+      return;
+    }
+
+    // Map AI items to inventory and add to pending sale
+    const newItems: BillItem[] = sessionItems.map(item => {
       const realProduct = inventory.find(p => p.name.toLowerCase() === item.product.toLowerCase()) || 
                           inventory.find(p => p.name.toLowerCase().includes(item.product.toLowerCase()));
       
@@ -125,31 +164,20 @@ const RetailerModule: React.FC<Props> = ({ lang }) => {
       };
     });
 
-    const total = billItems.reduce((acc, item) => acc + (item.price * item.qty), 0);
+    setPendingSale(prev => {
+      let updated = [...prev];
+      newItems.forEach(ni => {
+        const idx = updated.findIndex(u => u.sku === ni.sku);
+        if (idx > -1 && ni.sku !== 'UNKNOWN') {
+          updated[idx].qty += ni.qty;
+        } else {
+          updated.push(ni);
+        }
+      });
+      return updated;
+    });
 
-    // 2. Deduct stock from inventory
-    setInventory(prev => prev.map(p => {
-      const soldItem = billItems.find(bi => bi.sku === p.sku);
-      if (soldItem) {
-        return { ...p, stock: Math.max(0, p.stock - soldItem.qty) };
-      }
-      return p;
-    }));
-
-    // 3. Create Bill
-    const newBill: Bill = {
-      id: `BILL-${Math.floor(1000 + Math.random() * 9000)}`,
-      date: new Date().toLocaleDateString(),
-      items: billItems,
-      total,
-      paymentMode: 'CASH', 
-      status: 'paid',
-      shopName: MOCK_RETAILERS[0].name
-    };
-
-    setBills([newBill, ...bills]);
-    setRecentBill(newBill);
-    setShowVoice(false);
+    setShowCart(true);
   };
 
   return (
@@ -166,11 +194,7 @@ const RetailerModule: React.FC<Props> = ({ lang }) => {
                  <p className="text-sm opacity-80 font-bold uppercase tracking-widest">₹{recentBill.total.toLocaleString()} Collected</p>
               </div>
               <div className="p-8 space-y-6">
-                 <div className="space-y-4">
-                    <div className="flex justify-between text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-2">
-                       <span>{t.items}</span>
-                       <span>Value</span>
-                    </div>
+                 <div className="space-y-4 max-h-[30vh] overflow-y-auto pr-2 custom-scrollbar">
                     {recentBill.items.map((item, idx) => (
                       <div key={idx} className="flex justify-between items-center">
                          <div>
@@ -194,6 +218,55 @@ const RetailerModule: React.FC<Props> = ({ lang }) => {
         </div>
       )}
 
+      {/* Cart Drawer / Overlay */}
+      {showCart && pendingSale.length > 0 && (
+        <div className="fixed bottom-32 left-4 right-4 z-[90] animate-in slide-in-from-bottom duration-500">
+           <div className="bg-white rounded-[40px] shadow-2xl border border-slate-200 overflow-hidden">
+              <div className="bg-slate-900 px-8 py-6 flex justify-between items-center text-white">
+                 <div className="flex items-center gap-3">
+                    <ShoppingCart size={20} className="text-indigo-400" />
+                    <h4 className="font-black text-[10px] uppercase tracking-[0.2em]">{t.cart}</h4>
+                 </div>
+                 <button onClick={() => setShowCart(false)} className="p-2 bg-white/10 rounded-full hover:bg-white/20">
+                    <X size={16} />
+                 </button>
+              </div>
+              <div className="p-6 space-y-4 max-h-[40vh] overflow-y-auto custom-scrollbar">
+                 {pendingSale.map((item) => (
+                    <div key={item.sku} className="flex justify-between items-center bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                       <div className="flex-1">
+                          <p className="font-black text-slate-900 text-sm leading-tight">{item.name}</p>
+                          <p className="text-[10px] font-bold text-slate-400">₹{item.price} / {item.unit}</p>
+                       </div>
+                       <div className="flex items-center gap-4">
+                          <div className="flex items-center gap-3 bg-white border border-slate-200 rounded-xl px-2 py-1">
+                             <button onClick={() => updateCartQty(item.sku, -1)} className="p-1 hover:text-indigo-600"><Minus size={14} /></button>
+                             <span className="font-black text-sm w-4 text-center">{item.qty}</span>
+                             <button onClick={() => updateCartQty(item.sku, 1)} className="p-1 hover:text-indigo-600"><Plus size={14} /></button>
+                          </div>
+                          <button onClick={() => removeFromSale(item.sku)} className="text-red-400 hover:text-red-600">
+                             <Trash2 size={18} />
+                          </button>
+                       </div>
+                    </div>
+                 ))}
+              </div>
+              <div className="p-8 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-6">
+                 <div>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t.total}</p>
+                    <p className="text-3xl font-black text-slate-900 tracking-tighter">₹{cartTotal.toLocaleString()}</p>
+                 </div>
+                 <button 
+                  onClick={() => finalizeSale()}
+                  className="bg-indigo-600 text-white px-10 py-5 rounded-3xl font-black text-[11px] uppercase tracking-widest shadow-xl shadow-indigo-200 active:scale-95 transition-all flex items-center gap-3">
+                   {t.completeSale} <ArrowRight size={18} />
+                 </button>
+              </div>
+           </div>
+        </div>
+      )}
+
+      {/* Hero Stats */}
       <div className="bg-slate-900 rounded-[40px] p-8 text-white shadow-2xl relative overflow-hidden group">
         <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/20 rounded-full blur-[80px] -mr-32 -mt-32"></div>
         <div className="relative z-10 space-y-6">
@@ -204,9 +277,6 @@ const RetailerModule: React.FC<Props> = ({ lang }) => {
                  </div>
                  <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-white/50">Supply Intelligence Active</h2>
               </div>
-              <button onClick={handleBroadcast} className="bg-white text-slate-900 px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-indigo-50 transition-all active:scale-95 shadow-xl">
-                {t.broadcast}
-              </button>
            </div>
            
            <div className="flex items-end justify-between">
@@ -220,6 +290,7 @@ const RetailerModule: React.FC<Props> = ({ lang }) => {
         </div>
       </div>
 
+      {/* Tabs */}
       <div className="sticky top-20 z-40 py-2 -mx-4 px-4 bg-[#F8FAFC]/80 backdrop-blur-xl border-b border-slate-200">
         <div className="flex gap-3 overflow-x-auto scrollbar-hide py-2">
           {[
@@ -258,7 +329,6 @@ const RetailerModule: React.FC<Props> = ({ lang }) => {
           </div>
 
           {!selectedCategory && !searchTerm ? (
-            // Layer 1: Categories View
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {categoryStats.map(cat => (
                 <button 
@@ -296,7 +366,6 @@ const RetailerModule: React.FC<Props> = ({ lang }) => {
               ))}
             </div>
           ) : (
-            // Layer 2: Detailed Item List
             <div className="space-y-4">
               <div className="flex items-center justify-between px-2">
                 <button 
@@ -325,12 +394,10 @@ const RetailerModule: React.FC<Props> = ({ lang }) => {
                              <p className="text-[10px] font-bold text-slate-400 mt-1">₹{item.price} per {item.unit}</p>
                           </div>
                        </div>
-                       <div className="text-right">
-                         <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest">Total Value</p>
-                         <p className="font-black text-slate-900">₹{(item.price * item.stock).toLocaleString()}</p>
-                       </div>
                     </div>
-                    <button className="w-full bg-slate-900 text-white py-4 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] shadow-xl hover:shadow-indigo-500/20 active:scale-[0.98] transition-all">
+                    <button 
+                      onClick={() => addToSale(item)}
+                      className="w-full bg-slate-900 text-white py-4 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] shadow-xl hover:shadow-indigo-500/20 active:scale-[0.98] transition-all">
                       + Add to Sale
                     </button>
                   </div>
@@ -347,7 +414,6 @@ const RetailerModule: React.FC<Props> = ({ lang }) => {
               <h3 className="text-2xl font-black text-slate-900 tracking-tight">{t.performance}</h3>
            </div>
 
-           {/* Performance Grid */}
            <div className="grid grid-cols-2 gap-4">
               {[
                 { label: t.daySale, value: salesStats.dayTotal, icon: CalendarDays, color: 'indigo' },
@@ -356,7 +422,7 @@ const RetailerModule: React.FC<Props> = ({ lang }) => {
                 { label: t.yearSale, value: salesStats.yearTotal, icon: TrendingUp, color: 'orange' }
               ].map(stat => (
                 <div key={stat.label} className="bg-white p-6 rounded-[40px] border border-slate-100 shadow-sm space-y-4">
-                   <div className={`w-12 h-12 rounded-2xl bg-${stat.color}-50 text-${stat.color}-600 flex items-center justify-center`}>
+                   <div className={`w-12 h-12 rounded-2xl bg-slate-50 text-slate-600 flex items-center justify-center`}>
                       <stat.icon size={22} />
                    </div>
                    <div>
@@ -419,43 +485,21 @@ const RetailerModule: React.FC<Props> = ({ lang }) => {
                 <div className="mt-8 bg-black/20 p-6 rounded-3xl backdrop-blur-md border border-white/10">
                    <div className="flex items-center justify-between mb-4">
                       <span className="text-[10px] font-black uppercase tracking-widest flex items-center gap-2"><Box size={14}/> {t.capacity}</span>
-                      <button onClick={runCapacityCheck} className="text-[9px] font-black bg-white/20 px-3 py-1 rounded-full hover:bg-white/40">Analyze</button>
+                      <button className="text-[9px] font-black bg-white/20 px-3 py-1 rounded-full hover:bg-white/40">Analyze</button>
                    </div>
                    <div className="h-4 w-full bg-white/10 rounded-full overflow-hidden mb-2">
-                      <div className="h-full bg-indigo-400 transition-all duration-1000" style={{ width: `${loadingAnalysis?.loadFactor ? loadingAnalysis.loadFactor * 100 : 45}%` }}></div>
+                      <div className="h-full bg-indigo-400 transition-all duration-1000" style={{ width: '45%' }}></div>
                    </div>
                    <p className="text-[9px] font-bold text-white/60 text-right uppercase tracking-widest">
-                     {loadingAnalysis?.loadFactor ? (loadingAnalysis.loadFactor * 100).toFixed(1) : 45}% Utilized
+                     45% Utilized
                    </p>
                 </div>
 
-                <button onClick={handleBroadcast} className="mt-6 w-full bg-white text-indigo-700 py-5 rounded-2xl font-black uppercase text-xs tracking-widest shadow-2xl active:scale-95 transition-all">
+                <button className="mt-6 w-full bg-white text-indigo-700 py-5 rounded-2xl font-black uppercase text-xs tracking-widest shadow-2xl active:scale-95 transition-all">
                   Broadcast Reorder
                 </button>
               </div>
               <Truck size={140} className="absolute -right-8 -bottom-8 text-white opacity-10 -rotate-12" />
-           </div>
-
-           <div className="px-2 space-y-4">
-              <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Recent Fleet Activity</h4>
-              {orders.map(order => (
-                <div key={order.id} className="bg-white p-6 rounded-[36px] border border-slate-100 flex justify-between items-center shadow-sm">
-                   <div className="flex items-center gap-5">
-                      <div className={`p-4 rounded-2xl ${order.status === 'Broadcast' ? 'bg-amber-100 text-amber-600' : 'bg-emerald-100 text-emerald-600'}`}>
-                         <Layers size={28} />
-                      </div>
-                      <div>
-                         <h4 className="font-black text-slate-900 text-lg">{order.distributorName}</h4>
-                         <p className="text-[10px] text-slate-400 font-bold uppercase mt-1">Load Factor: {(order.loadFactor || 0.45) * 100}%</p>
-                      </div>
-                   </div>
-                   <div className="text-right">
-                      <span className={`text-[9px] font-black uppercase px-3 py-1 rounded-full ${order.status === 'Broadcast' ? 'bg-amber-50 text-amber-600 border border-amber-100' : 'bg-emerald-50 text-emerald-600 border border-emerald-100'}`}>
-                         {order.status}
-                      </span>
-                   </div>
-                </div>
-              ))}
            </div>
         </div>
       )}

@@ -8,7 +8,6 @@ const getAiClient = () => {
 function extractJson(text: string | undefined) {
   if (!text) return null;
   try {
-    // LLMs often wrap JSON in markdown blocks like ```json ... ```
     const cleaned = text.replace(/```json/g, "").replace(/```/g, "").trim();
     const jsonMatch = cleaned.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
     if (jsonMatch) {
@@ -17,7 +16,6 @@ function extractJson(text: string | undefined) {
     return JSON.parse(cleaned);
   } catch (e) {
     console.error("Failed to parse AI JSON. Raw text:", text);
-    // Return a minimal safe object to prevent app crash
     return { message: "Error parsing AI response.", intent: "error", items: [] };
   }
 }
@@ -27,17 +25,24 @@ export async function processVoiceCommand(transcript: string, role: string, cont
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
-      contents: `You are a specialized Kirana Store AI Assistant for Bharat. 
-      Current User Role: ${role}
+      contents: `You are a Kirana Store AI. Extract grocery items and user intent.
+      Role: ${role}
       Transcript: "${transcript}"
       
-      TASK:
-      1. Extract ALL mentioned grocery items and their quantities.
-      2. Identify the user intent: 'record_sale', 'finalize_sale', 'stock_check'.
-      3. Identify 'payment_mode' (CASH or UDHAAR).
-      4. Provide a 'message' response in same language style as user (Hinglish/Hindi/English).
+      INTENTS:
+      - 'record_sale': Adding items to current bill (e.g., "Add 2kg sugar", "Ek packet Maggi")
+      - 'finalize_sale': Checkout/Confirm bill (e.g., "Bas itna hi", "Bill banao", "Finalize")
+      - 'stock_check': Check availability (e.g., "Dhara tel hai kya?")
 
-      Example Output: { "message": "Ok, 2kg rice added.", "items": [{"product": "Rice", "qty": 2, "unit": "kg"}], "intent": "record_sale" }`,
+      OUTPUT FORMAT (JSON):
+      {
+        "message": "Friendly confirmation in user's language style",
+        "intent": "record_sale" | "finalize_sale" | "stock_check",
+        "items": [
+          { "product": "Standard Product Name", "qty": number, "unit": "kg/pcs/pkt", "price": number_if_mentioned }
+        ],
+        "payment_mode": "CASH" | "UDHAAR"
+      }`,
       config: { 
         responseMimeType: "application/json",
         responseSchema: {
