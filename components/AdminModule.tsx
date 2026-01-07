@@ -31,14 +31,36 @@ const AdminModule: React.FC<Props> = ({ lang }) => {
       health: "Service Mesh", 
       risk: "Risk Sentinel", 
       node: "Active Nodes", 
-      manual: "Operational Docs"
+      manual: "Operational Docs",
+      version: "Logistics MVP Platform v1.0.0",
+      throughput: "Network Throughput",
+      mesh: "Mesh",
+      nodes: "Nodes",
+      intel: "Intel",
+      docs: "Docs",
+      latency: "Latency",
+      load: "Load",
+      ledger: "Infrastructure Ledger Analytics",
+      graph: "Supply Network Graph",
+      riskMonitor: "Critical Risk Monitoring"
     },
     hi: { 
       title: "लॉजिस्टिक्स कोर", 
       health: "सर्विस मेश", 
       risk: "खतरा अलर्ट", 
       node: "सक्रिय आउटलेट्स", 
-      manual: "उपयोगकर्ता गाइड"
+      manual: "उपयोगकर्ता गाइड",
+      version: "लॉजिस्टिक्स MVP प्लेटफॉर्म v1.0.0",
+      throughput: "नेटवर्क थ्रूपुट",
+      mesh: "मेश",
+      nodes: "नोड्स",
+      intel: "इंटेल",
+      docs: "दस्तावेज़",
+      latency: "विलंबता",
+      load: "भार",
+      ledger: "इन्फ्रास्ट्रक्चर लेजर एनालिटिक्स",
+      graph: "सप्लाई नेटवर्क ग्राफ",
+      riskMonitor: "महत्वपूर्ण जोखिम निगरानी"
     }
   }[lang];
 
@@ -49,10 +71,10 @@ const AdminModule: React.FC<Props> = ({ lang }) => {
            <ShieldCheck size={32} className="text-white" />
         </div>
         {[
-          { id: 'mesh', icon: Server, label: 'Mesh' },
-          { id: 'map', icon: Map, label: 'Nodes' },
-          { id: 'intel', icon: BarChart3, label: 'Intel' },
-          { id: 'manual', icon: BookOpen, label: 'Docs' },
+          { id: 'mesh', icon: Server, label: t.mesh },
+          { id: 'map', icon: Map, label: t.nodes },
+          { id: 'intel', icon: BarChart3, label: t.intel },
+          { id: 'manual', icon: BookOpen, label: t.docs },
         ].map(mod => (
           <button 
             key={mod.id}
@@ -69,13 +91,13 @@ const AdminModule: React.FC<Props> = ({ lang }) => {
            <div className="space-y-4">
               <div className="flex items-center gap-3">
                  <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                 <p className="text-[10px] font-black uppercase tracking-[0.5em] text-emerald-400">Logistics MVP Platform v1.0.0</p>
+                 <p className="text-[10px] font-black uppercase tracking-[0.5em] text-emerald-400">{t.version}</p>
               </div>
               <h2 className="text-6xl font-black tracking-tighter text-white">{t.title}</h2>
            </div>
            <div className="flex gap-12 text-right">
               <div>
-                 <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-2">Network Throughput</p>
+                 <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-2">{t.throughput}</p>
                  <p className="text-5xl font-black text-indigo-400 tracking-tighter">18.2 GB/s</p>
               </div>
            </div>
@@ -91,18 +113,18 @@ const AdminModule: React.FC<Props> = ({ lang }) => {
                            <Terminal size={28} />
                         </div>
                         <span className={`text-[10px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full border ${service.status === 'Healthy' ? 'border-emerald-500/20 text-emerald-400' : 'border-amber-500/20 text-amber-400'}`}>
-                           {service.status}
+                           {lang === 'hi' ? (service.status === 'Healthy' ? 'स्वस्थ' : 'कमजोर') : service.status}
                         </span>
                      </div>
                      <div>
                         <h4 className="text-xl font-black text-white tracking-tight">{service.name}</h4>
                         <div className="flex gap-6 mt-6">
                            <div>
-                              <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Latency</p>
+                              <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">{t.latency}</p>
                               <p className="text-lg font-black text-white">{service.latency}ms</p>
                            </div>
                            <div className="border-l border-white/5 pl-6">
-                              <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Load</p>
+                              <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">{t.load}</p>
                               <p className="text-lg font-black text-white">{service.throughput}</p>
                            </div>
                         </div>
@@ -118,7 +140,7 @@ const AdminModule: React.FC<Props> = ({ lang }) => {
              
              <div className="bg-[#0F172A] border border-white/5 rounded-[64px] p-16 space-y-12">
                 <h3 className="text-2xl font-black text-white tracking-tight flex items-center gap-4">
-                   <HardDrive className="text-indigo-400" /> Infrastructure Ledger Analytics
+                   <HardDrive className="text-indigo-400" /> {t.ledger}
                 </h3>
                 <div className="h-64">
                    <ResponsiveContainer width="100%" height="100%">
@@ -138,7 +160,7 @@ const AdminModule: React.FC<Props> = ({ lang }) => {
               <div className="lg:col-span-2 bg-[#0F172A] border border-white/5 rounded-[64px] p-16 h-[600px] relative overflow-hidden">
                  <div className="flex justify-between items-center relative z-10 mb-12">
                     <h3 className="text-xs font-black uppercase tracking-[0.3em] text-indigo-400 flex items-center gap-3">
-                       <Globe size={20} className="animate-spin-slow" /> Supply Network Graph
+                       <Globe size={20} className="animate-spin-slow" /> {t.graph}
                     </h3>
                  </div>
                  {MOCK_RETAILERS.map((ret, idx) => (
@@ -158,7 +180,7 @@ const AdminModule: React.FC<Props> = ({ lang }) => {
                     <p className="text-8xl font-black tracking-tighter">2.4k</p>
                  </div>
                  <div className="space-y-4">
-                    <p className="text-[10px] font-black uppercase tracking-widest opacity-60">Critical Risk Monitoring</p>
+                    <p className="text-[10px] font-black uppercase tracking-widest opacity-60">{t.riskMonitor}</p>
                     {MOCK_RISK_WATCHLIST.map(risk => (
                       <div key={risk.id} className="bg-white/10 p-4 rounded-2xl flex items-center gap-4">
                          <AlertCircle className="text-red-400" size={20} />

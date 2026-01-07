@@ -35,7 +35,8 @@ const App: React.FC = () => {
       driverSub: "Deliver & earn",
       admin: "Ecosystem Control",
       logout: "Switch Profile",
-      langToggle: "हिन्दी"
+      langToggle: "हिन्दी",
+      currentLang: "English"
     },
     hi: {
       welcome: "किरानाकनेक्ट",
@@ -49,7 +50,8 @@ const App: React.FC = () => {
       driverSub: "डिलीवरी करें",
       admin: "इकोसिस्टम कंट्रोल",
       logout: "प्रोफाइल बदलें",
-      langToggle: "English"
+      langToggle: "English",
+      currentLang: "हिन्दी"
     }
   }[lang];
 
@@ -148,15 +150,24 @@ const App: React.FC = () => {
 
   return (
     <div className="bg-[#F8FAFC] min-h-screen">
-      <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50">
+      <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-[100]">
         <div className="max-w-screen-md mx-auto px-6 h-20 flex items-center justify-between">
           <div className="flex items-center gap-3 cursor-pointer" onClick={() => setRole(null)}>
             <div className="bg-slate-900 text-white p-2 rounded-xl shadow-lg">
               <Zap size={18} className="fill-white" />
             </div>
-            <span className="font-black text-2xl tracking-tighter text-slate-900">KiranaConnect</span>
+            <span className="font-black text-2xl tracking-tighter text-slate-900 hidden xs:block">KiranaConnect</span>
           </div>
           <div className="flex items-center gap-3">
+            {/* EASY LANGUAGE SWITCHER */}
+            <button 
+              onClick={() => setLang(lang === 'en' ? 'hi' : 'en')}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 text-slate-900 font-black text-[10px] uppercase tracking-wider hover:bg-slate-200 active:scale-90 transition-all"
+            >
+              <Globe size={14} className="text-indigo-600" />
+              {t.langToggle}
+            </button>
+
             <button className="p-3 text-slate-400 hover:text-slate-900 transition-colors relative">
                <Bell size={22} />
                <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-indigo-500 rounded-full border-2 border-white"></span>

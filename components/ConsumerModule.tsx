@@ -19,19 +19,28 @@ const ConsumerModule: React.FC<Props> = ({ lang }) => {
       welcome: "Hi Ramesh,", pulse: "Consumption Pulse", budget: "Wallet Share", 
       deals: "Market Offers", smartList: "AI Smart Auto-List", 
       healthAlert: "Sugar intake is High (12.4%).", healthSub: "Try Organic Jaggery at Gupta's",
-      history: "Purchase History", khata: "My Khata", recovery: "Balance Due"
+      history: "Purchase History", khata: "My Khata", recovery: "Balance Due",
+      diamondSaver: "Diamond Saver", limit: "Limit", used: "Used", 
+      saved: "Saved this month", claimOffer: "Claim Offer", storeVisits: "Store Visits",
+      pointsEarned: "Points Earned", last30Days: "Last 30 days spending", 
+      payBalance: "Pay Balance", verified: "Verified", inBilaspur: "In Bilaspur",
+      lastTxn: "Last Transaction", avg: "Avg", spend: "Spend"
     },
     hi: { 
       welcome: "नमस्ते रमेश,", pulse: "उपभोग पल्स", budget: "बजट मीटर", 
       deals: "बाजार ऑफर्स", smartList: "स्मार्ट लिस्ट",
       healthAlert: "चीनी का सेवन अधिक है (12.4%)।", healthSub: "गुप्ता जी से गुड़ मंगवाएं",
-      history: "पुराना सामान", khata: "मेरा खाता", recovery: "कुल उधार"
+      history: "पुराना सामान", khata: "मेरा खाता", recovery: "कुल उधार",
+      diamondSaver: "डायमंड सेवर", limit: "सीमा", used: "खर्च हुआ",
+      saved: "बचत हुई", claimOffer: "ऑफर लें", storeVisits: "दुकान विज़िट",
+      pointsEarned: "पॉइंट्स कमाएं", last30Days: "पिछले 30 दिनों का खर्च",
+      payBalance: "बैलेंस भरें", verified: "सत्यापित", inBilaspur: "बिलासपुर में",
+      lastTxn: "अंतिम लेनदेन", avg: "औसत", spend: "खर्च"
     }
   }[lang];
 
   return (
     <div className="p-4 md:p-8 space-y-8 pb-32 bg-[#F8FAFC] min-h-screen">
-      {/* Dynamic Header */}
       <div className="flex justify-between items-center px-2">
          <div className="flex items-center gap-5">
             <div className="w-16 h-16 bg-slate-900 rounded-[28px] flex items-center justify-center text-white shadow-2xl relative group overflow-hidden">
@@ -43,7 +52,7 @@ const ConsumerModule: React.FC<Props> = ({ lang }) => {
                <h2 className="text-3xl font-black text-slate-900 tracking-tighter">{t.welcome}</h2>
                <div className="flex items-center gap-2 mt-1">
                   <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest bg-emerald-50 px-2 py-0.5 rounded-lg flex items-center gap-1">
-                     <Sparkles size={10} /> Diamond Saver
+                     <Sparkles size={10} /> {t.diamondSaver}
                   </span>
                </div>
             </div>
@@ -59,7 +68,6 @@ const ConsumerModule: React.FC<Props> = ({ lang }) => {
 
       {activeTab === 'home' && (
         <div className="space-y-8 animate-in slide-in-from-bottom-8 duration-500">
-           {/* Wallet Card */}
            <div className="bg-slate-900 rounded-[56px] p-10 text-white shadow-[0_40px_80px_-20px_rgba(15,23,42,0.3)] relative overflow-hidden">
               <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-indigo-500/10 rounded-full blur-[100px] -mr-32 -mt-32"></div>
               <div className="relative z-10 space-y-10">
@@ -68,7 +76,7 @@ const ConsumerModule: React.FC<Props> = ({ lang }) => {
                        <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.4em]">{t.budget}</p>
                        <h3 className="text-6xl font-black tracking-tighter">₹8,450</h3>
                        <p className="text-[11px] font-black text-emerald-400 flex items-center gap-2 tracking-widest uppercase mt-2">
-                          <TrendingUp size={14}/> 14% Saved this month
+                          <TrendingUp size={14}/> 14% {t.saved}
                        </p>
                     </div>
                     <div className="bg-white/10 p-5 rounded-[32px] backdrop-blur-md border border-white/10">
@@ -77,8 +85,8 @@ const ConsumerModule: React.FC<Props> = ({ lang }) => {
                  </div>
                  <div className="space-y-4">
                     <div className="flex justify-between text-[11px] font-black uppercase tracking-widest opacity-40">
-                       <span>Limit: ₹12,000</span>
-                       <span>65% Used</span>
+                       <span>{t.limit}: ₹12,000</span>
+                       <span>65% {t.used}</span>
                     </div>
                     <div className="h-5 w-full bg-white/5 rounded-full overflow-hidden p-1.5 border border-white/10">
                        <div className="h-full bg-gradient-to-r from-indigo-500 to-blue-400 rounded-full" style={{ width: '65%' }}></div>
@@ -87,7 +95,6 @@ const ConsumerModule: React.FC<Props> = ({ lang }) => {
               </div>
            </div>
 
-           {/* Health Alert */}
            <div className="bg-emerald-600 rounded-[48px] p-8 text-white flex items-center gap-8 shadow-2xl relative overflow-hidden group">
               <div className="bg-white/20 p-5 rounded-[32px] backdrop-blur-xl shrink-0 shadow-lg border border-white/10">
                  <HeartPulse size={40} className="animate-pulse" />
@@ -95,11 +102,10 @@ const ConsumerModule: React.FC<Props> = ({ lang }) => {
               <div className="space-y-2">
                  <p className="text-xl font-black leading-tight tracking-tight">{t.healthAlert}</p>
                  <p className="text-sm font-medium text-emerald-100/80">{t.healthSub}</p>
-                 <button className="mt-4 bg-white text-emerald-600 px-6 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl active:scale-95 transition-all">Claim Offer</button>
+                 <button className="mt-4 bg-white text-emerald-600 px-6 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl active:scale-95 transition-all">{t.claimOffer}</button>
               </div>
            </div>
 
-           {/* AI Smart Auto-List (New Feature) */}
            <div className="bg-white border border-slate-200 rounded-[48px] p-8 space-y-6 shadow-sm">
               <div className="flex justify-between items-center">
                  <div className="flex items-center gap-3">
@@ -131,11 +137,11 @@ const ConsumerModule: React.FC<Props> = ({ lang }) => {
               <div className="flex justify-between items-end">
                  <div>
                     <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest">{t.pulse}</h3>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase mt-1">Last 30 days spending</p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase mt-1">{t.last30Days}</p>
                  </div>
                  <div className="text-right">
                     <p className="text-2xl font-black text-indigo-600 tracking-tighter">₹8,450</p>
-                    <p className="text-[9px] font-black text-emerald-500 uppercase">Avg: ₹280 / day</p>
+                    <p className="text-[9px] font-black text-emerald-500 uppercase">{t.avg}: ₹280 / day</p>
                  </div>
               </div>
               <div className="h-64 w-full">
@@ -153,7 +159,7 @@ const ConsumerModule: React.FC<Props> = ({ lang }) => {
                          contentStyle={{ borderRadius: '24px', border: 'none', boxShadow: '0 20px 40px rgba(0,0,0,0.1)', padding: '16px' }}
                          labelStyle={{ fontWeight: '900', color: '#64748b', marginBottom: '4px', textTransform: 'uppercase', fontSize: '10px' }}
                          itemStyle={{ fontWeight: '900', color: '#1e293b', fontSize: '16px' }}
-                         formatter={(value: number) => [`₹${value}`, 'Spend']}
+                         formatter={(value: number) => [`₹${value}`, t.spend]}
                        />
                        <Area type="monotone" dataKey="amount" stroke="#4F46E5" strokeWidth={5} fillOpacity={1} fill="url(#colorSpend)" />
                     </AreaChart>
@@ -166,14 +172,14 @@ const ConsumerModule: React.FC<Props> = ({ lang }) => {
                  <div className="bg-white w-fit p-3 rounded-2xl text-indigo-600 shadow-sm"><ShoppingCart size={20}/></div>
                  <div>
                     <p className="text-3xl font-black text-indigo-900 tracking-tighter">12</p>
-                    <p className="text-[9px] font-black text-indigo-400 uppercase tracking-widest">Store Visits</p>
+                    <p className="text-[9px] font-black text-indigo-400 uppercase tracking-widest">{t.storeVisits}</p>
                  </div>
               </div>
               <div className="bg-emerald-50 p-8 rounded-[40px] border border-emerald-100 flex flex-col gap-4">
                  <div className="bg-white w-fit p-3 rounded-2xl text-emerald-600 shadow-sm"><Receipt size={20}/></div>
                  <div>
                     <p className="text-3xl font-black text-emerald-900 tracking-tighter">4.2%</p>
-                    <p className="text-[9px] font-black text-emerald-400 uppercase tracking-widest">Points Earned</p>
+                    <p className="text-[9px] font-black text-emerald-400 uppercase tracking-widest">{t.pointsEarned}</p>
                  </div>
               </div>
            </div>
@@ -188,14 +194,14 @@ const ConsumerModule: React.FC<Props> = ({ lang }) => {
                  <p className="text-white/60 text-[10px] font-black uppercase tracking-[0.4em] mb-2">{t.recovery}</p>
                  <h3 className="text-7xl font-black tracking-tighter">₹1,440</h3>
                  <div className="flex items-center gap-2 mt-8">
-                    <button className="bg-white text-red-600 px-8 py-3 rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl active:scale-95 transition-all">Pay Balance</button>
+                    <button className="bg-white text-red-600 px-8 py-3 rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-xl active:scale-95 transition-all">{t.payBalance}</button>
                     <button className="p-3 bg-white/20 rounded-2xl backdrop-blur-md border border-white/20"><Info size={20}/></button>
                  </div>
               </div>
            </div>
 
            <div className="space-y-4">
-              <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-2">{t.khata} Stores</h4>
+              <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-2">{t.khata}</h4>
               <div className="bg-white border border-slate-200 rounded-[48px] overflow-hidden divide-y divide-slate-100 shadow-sm">
                  <div className="p-8 flex justify-between items-center group cursor-pointer hover:bg-slate-50 transition-all">
                     <div className="flex items-center gap-6">
@@ -204,12 +210,12 @@ const ConsumerModule: React.FC<Props> = ({ lang }) => {
                        </div>
                        <div>
                           <p className="font-black text-slate-900 text-xl tracking-tight">Gupta Kirana Store</p>
-                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Last Transaction: Nov 20</p>
+                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">{t.lastTxn}: Nov 20</p>
                        </div>
                     </div>
                     <div className="text-right">
                        <p className="text-2xl font-black text-red-600 tracking-tighter">₹1,440</p>
-                       <p className="text-[9px] font-black text-slate-400 uppercase mt-1 flex items-center gap-1 justify-end">Verified <CheckCircle2 size={10} className="text-emerald-500" /></p>
+                       <p className="text-[9px] font-black text-slate-400 uppercase mt-1 flex items-center gap-1 justify-end">{t.verified} <CheckCircle2 size={10} className="text-emerald-500" /></p>
                     </div>
                  </div>
               </div>
@@ -239,7 +245,7 @@ const ConsumerModule: React.FC<Props> = ({ lang }) => {
         <div className="space-y-6 animate-in slide-in-from-right duration-500">
            <div className="flex items-center gap-3 px-2">
               <Tag className="text-indigo-600" size={24} />
-              <h3 className="text-2xl font-black text-slate-900 tracking-tight">{t.deals} In Bilaspur</h3>
+              <h3 className="text-2xl font-black text-slate-900 tracking-tight">{t.deals} {t.inBilaspur}</h3>
            </div>
            <div className="grid grid-cols-1 gap-4">
               {offers.map(off => (
@@ -253,7 +259,7 @@ const ConsumerModule: React.FC<Props> = ({ lang }) => {
                       <p className="text-sm font-bold text-slate-500">{off.productName}</p>
                       <p className="text-3xl font-black text-indigo-600 tracking-tighter">{off.discount}</p>
                       <div className="flex items-center gap-2 mt-4">
-                         <span className="text-[9px] font-black text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full uppercase tracking-widest">Valid until {off.validUntil}</span>
+                         <span className="text-[9px] font-black text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full uppercase tracking-widest">{lang === 'hi' ? 'वैध' : 'Valid until'} {off.validUntil}</span>
                       </div>
                    </div>
                    <button className="bg-slate-900 text-white p-5 rounded-[24px] shadow-xl active:scale-90 transition-all">
@@ -265,14 +271,13 @@ const ConsumerModule: React.FC<Props> = ({ lang }) => {
         </div>
       )}
 
-      {/* Persistent Bottom Tab Bar */}
       <div className="fixed bottom-10 left-8 right-8 flex justify-center z-[100]">
         <div className="bg-slate-900/90 px-6 py-4 rounded-[40px] flex items-center gap-3 border border-white/10 shadow-[0_40px_80px_-15px_rgba(15,23,42,0.6)] backdrop-blur-3xl">
           {[
-            { id: 'home', icon: Activity, label: 'Pulse' },
-            { id: 'deals', icon: Tag, label: 'Deals' },
-            { id: 'analysis', icon: BarChart2, label: 'Intel' },
-            { id: 'khata', icon: History, label: 'Khata' }
+            { id: 'home', icon: Activity, label: lang === 'hi' ? 'पल्स' : 'Pulse' },
+            { id: 'deals', icon: Tag, label: lang === 'hi' ? 'डील' : 'Deals' },
+            { id: 'analysis', icon: BarChart2, label: lang === 'hi' ? 'इंटेल' : 'Intel' },
+            { id: 'khata', icon: History, label: lang === 'hi' ? 'खाता' : 'Khata' }
           ].map(tab => (
             <button 
               key={tab.id} 

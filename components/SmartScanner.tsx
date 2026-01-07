@@ -17,6 +17,31 @@ const SmartScanner: React.FC<Props> = ({ mode, onClose, onResult, lang }) => {
   const [lastResult, setLastResult] = useState<any>(null);
   const [permissionError, setPermissionError] = useState<string | null>(null);
 
+  const t = {
+    en: {
+      permReq: "Permission Required",
+      retry: "Try Again",
+      itemRec: "Item Recognition",
+      billRec: "Bill OCR Mode",
+      analyzing: "Analyzing",
+      itemHint: "Point at item to Tick it off",
+      billHint: "Align receipt clearly within frame",
+      permDenied: "Camera permission was dismissed or denied. Please allow access to scan.",
+      startError: "Could not start camera. Please try again."
+    },
+    hi: {
+      permReq: "परमिशन की आवश्यकता है",
+      retry: "पुनः प्रयास करें",
+      itemRec: "सामान की पहचान",
+      billRec: "बिल स्कैन मोड",
+      analyzing: "चेक कर रहा हूँ",
+      itemHint: "सामान पर टिक करने के लिए पॉइंट करें",
+      billHint: "रसीद को फ्रेम में रखें",
+      permDenied: "कैमरा परमिशन नहीं मिली। कृपया सेटिंग्स में अनुमति दें।",
+      startError: "कैमरा शुरू करने में समस्या आई।"
+    }
+  }[lang];
+
   useEffect(() => {
     startCamera();
     return () => stopCamera();
@@ -37,9 +62,9 @@ const SmartScanner: React.FC<Props> = ({ mode, onClose, onResult, lang }) => {
     } catch (err: any) {
       console.error("Camera error:", err);
       if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError' || err.message?.includes('dismissed')) {
-        setPermissionError(lang === 'hi' ? "कैमरा परमिशन नहीं मिली। कृपया सेटिंग्स में अनुमति दें।" : "Camera permission was dismissed or denied. Please allow access to scan.");
+        setPermissionError(t.permDenied);
       } else {
-        setPermissionError(lang === 'hi' ? "कैमरा शुरू करने में समस्या आई।" : "Could not start camera. Please try again.");
+        setPermissionError(t.startError);
       }
     }
   };
@@ -56,7 +81,6 @@ const SmartScanner: React.FC<Props> = ({ mode, onClose, onResult, lang }) => {
     if (!context) return;
 
     setIsProcessing(true);
-    // Use the actual video dimensions for the capture
     canvasRef.current.width = videoRef.current.videoWidth || 640;
     canvasRef.current.height = videoRef.current.videoHeight || 480;
     
@@ -95,8 +119,6 @@ const SmartScanner: React.FC<Props> = ({ mode, onClose, onResult, lang }) => {
               className="w-full h-full object-cover"
             />
             <canvas ref={canvasRef} className="hidden" />
-            
-            {/* UI Overlays */}
             <div className="absolute inset-0 pointer-events-none border-[40px] border-black/40">
                <div className={`w-full h-full border-2 border-dashed ${isProcessing ? 'border-indigo-400' : 'border-white/50'} rounded-3xl flex items-center justify-center`}>
                   {lastResult && (
@@ -113,7 +135,7 @@ const SmartScanner: React.FC<Props> = ({ mode, onClose, onResult, lang }) => {
               <AlertCircle size={48} />
             </div>
             <div className="space-y-2">
-              <h3 className="text-white font-bold text-lg">{lang === 'hi' ? 'परमिशन की आवश्यकता है' : 'Permission Required'}</h3>
+              <h3 className="text-white font-bold text-lg">{t.permReq}</h3>
               <p className="text-slate-400 text-sm max-w-xs">{permissionError}</p>
             </div>
             <button 
@@ -121,7 +143,7 @@ const SmartScanner: React.FC<Props> = ({ mode, onClose, onResult, lang }) => {
               className="bg-white text-black px-8 py-3 rounded-2xl font-black text-sm uppercase tracking-widest flex items-center gap-2 active:scale-95 transition-all"
             >
               <RefreshCw size={18} />
-              {lang === 'hi' ? 'पुनः प्रयास करें' : 'Try Again'}
+              {t.retry}
             </button>
           </div>
         )}
@@ -136,7 +158,7 @@ const SmartScanner: React.FC<Props> = ({ mode, onClose, onResult, lang }) => {
         <div className="absolute top-6 left-6 px-4 py-2 bg-black/40 backdrop-blur-md rounded-full border border-white/20 z-20">
           <p className="text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-2">
             <Zap size={12} className="text-yellow-400" />
-            {mode === 'item' ? 'Item Recognition' : 'Bill OCR Mode'}
+            {mode === 'item' ? t.itemRec : t.billRec}
           </p>
         </div>
       </div>
@@ -145,7 +167,7 @@ const SmartScanner: React.FC<Props> = ({ mode, onClose, onResult, lang }) => {
         {isProcessing ? (
           <div className="flex flex-col items-center gap-3">
             <Loader2 className="text-indigo-400 animate-spin" size={32} />
-            <p className="text-[10px] font-black text-indigo-200 uppercase tracking-[0.2em]">Analyzing {mode}...</p>
+            <p className="text-[10px] font-black text-indigo-200 uppercase tracking-[0.2em]">{t.analyzing} {mode}...</p>
           </div>
         ) : !permissionError && (
           <button 
@@ -157,7 +179,7 @@ const SmartScanner: React.FC<Props> = ({ mode, onClose, onResult, lang }) => {
         )}
         {!permissionError && (
           <p className="text-xs text-slate-400 font-bold">
-            {mode === 'item' ? (lang === 'hi' ? 'सामान पर टिक करने के लिए पॉइंट करें' : 'Point at item to Tick it off') : (lang === 'hi' ? 'रसीद को फ्रेम में रखें' : 'Align receipt clearly within frame')}
+            {mode === 'item' ? t.itemHint : t.billHint}
           </p>
         )}
       </div>

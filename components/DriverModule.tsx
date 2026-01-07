@@ -31,9 +31,7 @@ const DriverModule: React.FC<Props> = ({ lang }) => {
 
   const handleOptimize = async () => {
     setIsOptimizing(true);
-    // Simulating TSP call
     await new Promise(r => setTimeout(r, 2000));
-    // In a real app, we'd update state based on optimizeDeliveryRoute(tasks)
     setIsOptimizing(false);
   };
 
@@ -44,7 +42,14 @@ const DriverModule: React.FC<Props> = ({ lang }) => {
       drops: "Drops",
       scanPod: "Proof of Delivery",
       active: "Active Trip",
-      engine: "Elkai TSP Solver Active"
+      engine: "Elkai TSP Solver Active",
+      optRoute: "AI Optimized Route",
+      saving: "Saving",
+      navigate: "Navigate",
+      scan: "Scan POD",
+      support: "Support",
+      break: "Break",
+      finish: "Finish"
     },
     hi: {
       route: "रास्ता अनुकूलित करें",
@@ -52,7 +57,14 @@ const DriverModule: React.FC<Props> = ({ lang }) => {
       drops: "डिलीवरी",
       scanPod: "डिलीवरी कन्फर्म करें",
       active: "सक्रिय ट्रिप",
-      engine: "Elkai TSP सॉल्वर चालू है"
+      engine: "Elkai TSP सॉल्वर चालू है",
+      optRoute: "स्मार्ट मार्ग",
+      saving: "बचत",
+      navigate: "नेविगेट करें",
+      scan: "स्कैन POD",
+      support: "सहायता",
+      break: "ब्रेक",
+      finish: "समाप्त करें"
     }
   };
 
@@ -90,8 +102,8 @@ const DriverModule: React.FC<Props> = ({ lang }) => {
 
       <div className="space-y-4">
         <h3 className="font-black text-slate-900 uppercase tracking-widest text-xs px-2 flex items-center justify-between">
-          <span>AI Optimized Route</span>
-          <span className="text-indigo-600 flex items-center gap-1"><Zap size={12}/> Saving 1.2km</span>
+          <span>{t.optRoute}</span>
+          <span className="text-indigo-600 flex items-center gap-1"><Zap size={12}/> {t.saving} 1.2km</span>
         </h3>
         <div className="space-y-4">
           {tasks.map(task => (
@@ -115,10 +127,10 @@ const DriverModule: React.FC<Props> = ({ lang }) => {
               {!task.status.includes('completed') && (
                 <div className="mt-8 flex gap-3">
                   <button className="flex-1 bg-slate-900 text-white py-4 rounded-2xl font-black text-[11px] uppercase tracking-widest flex items-center justify-center gap-2 shadow-2xl active:scale-95 transition-all">
-                    <Navigation size={18} /> Navigate
+                    <Navigation size={18} /> {t.navigate}
                   </button>
                   <button className="flex-1 bg-white border border-slate-200 text-slate-900 py-4 rounded-2xl font-black text-[11px] uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95 transition-all">
-                    <Scan size={18} /> Scan POD
+                    <Scan size={18} /> {t.scan}
                   </button>
                 </div>
               )}
@@ -130,17 +142,17 @@ const DriverModule: React.FC<Props> = ({ lang }) => {
       <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-8 py-4 rounded-full shadow-2xl flex items-center gap-10 border border-white/10 backdrop-blur-xl">
         <button className="flex flex-col items-center gap-1 opacity-60 hover:opacity-100 transition-opacity">
           <Phone size={20} />
-          <span className="text-[9px] font-black uppercase tracking-widest">Support</span>
+          <span className="text-[9px] font-black uppercase tracking-widest">{t.support}</span>
         </button>
         <div className="w-px h-8 bg-white/10"></div>
         <button className="flex flex-col items-center gap-1 text-orange-400">
           <Clock size={20} />
-          <span className="text-[9px] font-black uppercase tracking-widest">Break</span>
+          <span className="text-[9px] font-black uppercase tracking-widest">{t.break}</span>
         </button>
         <div className="w-px h-8 bg-white/10"></div>
         <button className="flex flex-col items-center gap-1 text-emerald-400">
           <CheckCircle size={20} />
-          <span className="text-[9px] font-black uppercase tracking-widest">Finish</span>
+          <span className="text-[9px] font-black uppercase tracking-widest">{t.finish}</span>
         </button>
       </div>
     </div>

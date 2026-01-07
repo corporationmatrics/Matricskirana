@@ -5,6 +5,10 @@ const getAiClient = () => {
   return new GoogleGenAI({ apiKey: process.env.API_KEY });
 };
 
+/**
+ * Robustly extracts JSON from potentially messy AI text output.
+ * Handles markdown blocks and trailing text.
+ */
 function extractJson(text: string | undefined) {
   if (!text) return null;
   try {
@@ -15,33 +19,32 @@ function extractJson(text: string | undefined) {
     }
     return JSON.parse(cleaned);
   } catch (e) {
-    console.error("Failed to parse AI JSON. Raw text:", text);
-    return { message: "Error parsing AI response.", intent: "error", items: [] };
+    console.warn("AI JSON parse warning. Fallback to basic extraction.", e);
+    // Attempt to find any object-like structure if direct parse fails
+    const fallbackMatch = text.match(/\{.*\}/s);
+    if (fallbackMatch) {
+      try { return JSON.parse(fallbackMatch[0]); } catch { return null; }
+    }
+    return null;
   }
 }
 
-export async function processVoiceCommand(transcript: string, role: string, context?: any) {
+export async function processVoiceCommand(transcript: string, role: string) {
   const ai = getAiClient();
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
-      contents: `You are a Kirana Store AI. Extract grocery items and user intent.
-      Role: ${role}
-      Transcript: "${transcript}"
+      contents: `You are a Kirana Store AI assistant. 
+      Extract intent and items from: "${transcript}"
+      Role context: ${role}
       
-      INTENTS:
-      - 'record_sale': Adding items to current bill (e.g., "Add 2kg sugar", "Ek packet Maggi")
-      - 'finalize_sale': Checkout/Confirm bill (e.g., "Bas itna hi", "Bill banao", "Finalize")
-      - 'stock_check': Check availability (e.g., "Dhara tel hai kya?")
-
-      OUTPUT FORMAT (JSON):
+      Output ONLY valid JSON:
       {
-        "message": "Friendly confirmation in user's language style",
+        "message": "Confirmation in simple ${transcript.match(/[\u0900-\u097F]/) ? 'Hindi' : 'English'}",
         "intent": "record_sale" | "finalize_sale" | "stock_check",
         "items": [
-          { "product": "Standard Product Name", "qty": number, "unit": "kg/pcs/pkt", "price": number_if_mentioned }
-        ],
-        "payment_mode": "CASH" | "UDHAAR"
+          { "product": "Standard Name", "qty": number, "unit": "kg/pcs/pkt" }
+        ]
       }`,
       config: { 
         responseMimeType: "application/json",
@@ -57,13 +60,11 @@ export async function processVoiceCommand(transcript: string, role: string, cont
                 properties: {
                   product: { type: Type.STRING },
                   qty: { type: Type.NUMBER },
-                  unit: { type: Type.STRING },
-                  price: { type: Type.NUMBER }
+                  unit: { type: Type.STRING }
                 },
                 required: ["product"]
               }
-            },
-            payment_mode: { type: Type.STRING }
+            }
           },
           required: ["message", "intent"]
         }
@@ -71,57 +72,66 @@ export async function processVoiceCommand(transcript: string, role: string, cont
     });
     return extractJson(response.text);
   } catch (error) {
-    console.error("Gemini API Error:", error);
-    return { message: "Connectivity issue. Please try again.", intent: "error", items: [] };
+    console.error("Gemini Voice Process Error:", error);
+    return { message: "Connectivity issue. Try again.", intent: "error", items: [] };
   }
-}
-
-export async function getLogisticsIntelligence(items: any[], vehicleCapacity: number) {
-  const ai = getAiClient();
-  const response = await ai.models.generateContent({
-    model: 'gemini-3-flash-preview',
-    contents: `Vehicle Capacity: ${vehicleCapacity}. Items: ${JSON.stringify(items)}. Output JSON loadFactor(0-1), stability(0-100).`,
-    config: { responseMimeType: "application/json" }
-  });
-  return extractJson(response.text);
 }
 
 export async function optimizeDeliveryRoute(stops: any[]) {
   const ai = getAiClient();
-  const response = await ai.models.generateContent({
-    model: 'gemini-3-pro-preview',
-    contents: `Optimize these stops sequence: ${JSON.stringify(stops)}. Output JSON array of indices.`,
-    config: { responseMimeType: "application/json" }
-  });
-  return extractJson(response.text);
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-3-flash-preview',
+      contents: `Perform TSP optimization on these stops: ${JSON.stringify(stops)}. Return an array of indices in optimal order.`,
+      config: { 
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.ARRAY,
+          items: { type: Type.NUMBER }
+        }
+      }
+    });
+    return extractJson(response.text);
+  } catch (error) {
+    console.error("Gemini Route Error:", error);
+    return stops.map((_, i) => i); // Fallback to original order
+  }
 }
 
 export async function identifyGroceryItem(base64Image: string) {
   const ai = getAiClient();
-  const response = await ai.models.generateContent({
-    model: 'gemini-3-flash-preview',
-    contents: {
-      parts: [
-        { inlineData: { mimeType: 'image/jpeg', data: base64Image } },
-        { text: "Identify grocery item. Output JSON." }
-      ]
-    },
-    config: { responseMimeType: "application/json" }
-  });
-  return extractJson(response.text);
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-3-flash-preview',
+      contents: {
+        parts: [
+          { inlineData: { mimeType: 'image/jpeg', data: base64Image } },
+          { text: "Identify this grocery item. Return JSON: { \"product\": \"name\", \"category\": \"cat\" }" }
+        ]
+      },
+      config: { responseMimeType: "application/json" }
+    });
+    return extractJson(response.text);
+  } catch (error) {
+    return null;
+  }
 }
 
 export async function analyzeBillImage(base64Image: string) {
   const ai = getAiClient();
-  const response = await ai.models.generateContent({
-    model: 'gemini-3-flash-preview',
-    contents: {
-      parts: [
-        { inlineData: { mimeType: 'image/jpeg', data: base64Image } },
-        { text: "Extract bill items. Output JSON." }
-      ]
-    },
-    config: { responseMimeType: "application/json" }
-  });
-  return extractJson(response.text);
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-3-flash-preview',
+      contents: {
+        parts: [
+          { inlineData: { mimeType: 'image/jpeg', data: base64Image } },
+          { text: "Extract bill items. Return JSON array of { \"product\": \"name\", \"qty\": 1, \"price\": 0 }" }
+        ]
+      },
+      config: { responseMimeType: "application/json" }
+    });
+    return extractJson(response.text);
+  } catch (error) {
+    return null;
+  }
 }

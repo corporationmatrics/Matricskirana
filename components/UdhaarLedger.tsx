@@ -43,7 +43,11 @@ const UdhaarLedger: React.FC<Props> = ({ lang, entries: propEntries, bills = [],
       add: "Add Debtor",
       searchHint: "Search 50+ Debtors",
       highDues: "Critical Dues",
-      history: "Transaction History"
+      history: "Transaction History",
+      accountsOverdue: "Accounts Overdue",
+      overview: "Overview",
+      pending: "Pending",
+      sendAlert: "Send Alert"
     },
     hi: {
       total: "कुल वसूली बाकी",
@@ -52,7 +56,11 @@ const UdhaarLedger: React.FC<Props> = ({ lang, entries: propEntries, bills = [],
       add: "ग्राहक जोड़ें",
       searchHint: "ग्राहकों में खोजें",
       highDues: "ज्यादा उधार",
-      history: "बिक्री इतिहास"
+      history: "बिक्री इतिहास",
+      accountsOverdue: "खाते ओवरड्यू हैं",
+      overview: "विवरण",
+      pending: "बाकी",
+      sendAlert: "अलर्ट भेजें"
     }
   };
 
@@ -73,7 +81,6 @@ const UdhaarLedger: React.FC<Props> = ({ lang, entries: propEntries, bills = [],
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-20">
-      {/* Precision Recovery Dashboard */}
       <div className="bg-white border border-slate-200 rounded-[56px] overflow-hidden shadow-2xl shadow-slate-200/50">
         <div className="bg-red-600 p-12 text-white flex justify-between items-center relative overflow-hidden group">
           <div className="absolute inset-0 bg-gradient-to-tr from-black/20 to-transparent"></div>
@@ -82,7 +89,7 @@ const UdhaarLedger: React.FC<Props> = ({ lang, entries: propEntries, bills = [],
             <h3 className="text-7xl font-black tracking-tighter">₹{totalPending.toLocaleString()}</h3>
             <div className="flex items-center gap-2 bg-white/20 px-4 py-1.5 rounded-full w-fit backdrop-blur-md border border-white/20 mt-4">
                <AlertCircle size={14} />
-               <p className="text-[10px] font-black uppercase tracking-widest">12 Accounts Overdue</p>
+               <p className="text-[10px] font-black uppercase tracking-widest">12 {t.accountsOverdue}</p>
             </div>
           </div>
           <ArrowDownLeft size={160} className="text-white opacity-5 absolute -right-12 -bottom-12 transition-transform group-hover:scale-110 duration-700" />
@@ -99,7 +106,6 @@ const UdhaarLedger: React.FC<Props> = ({ lang, entries: propEntries, bills = [],
         </div>
       </div>
 
-      {/* Modern Search & Filtering Layer */}
       <div className="space-y-6">
         <div className="flex gap-4">
            <div className="flex-1 bg-white border border-slate-200 rounded-[32px] px-8 flex items-center gap-4 shadow-sm group focus-within:ring-4 focus-within:ring-indigo-500/10 transition-all">
@@ -121,8 +127,8 @@ const UdhaarLedger: React.FC<Props> = ({ lang, entries: propEntries, bills = [],
         </div>
         <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-2 px-1">
            {[
-             { id: 'all', label: lang === 'hi' ? 'सभी' : 'Overview' },
-             { id: 'pending', label: lang === 'hi' ? 'बाकी' : 'Pending' },
+             { id: 'all', label: t.overview },
+             { id: 'pending', label: t.pending },
              { id: 'high', label: t.highDues }
            ].map(f => (
              <button 
@@ -156,7 +162,7 @@ const UdhaarLedger: React.FC<Props> = ({ lang, entries: propEntries, bills = [],
               </span>
               {entry.status === 'pending' && (
                  <button className="flex items-center gap-2 bg-emerald-600 text-white px-6 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-emerald-500/20 active:scale-95 transition-all">
-                    <MessageCircle size={14} /> Send Alert
+                    <MessageCircle size={14} /> {t.sendAlert}
                  </button>
               )}
             </div>
