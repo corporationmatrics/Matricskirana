@@ -1,10 +1,6 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, lazy, Suspense } from 'react';
 import { UserRole } from './types';
-import RetailerModule from './components/RetailerModule';
-import ConsumerModule from './components/ConsumerModule';
-import DriverModule from './components/DriverModule';
-import AdminModule from './components/AdminModule';
 import { 
   User, 
   Store, 
@@ -14,14 +10,28 @@ import {
   Globe,
   Bell,
   ShieldCheck,
-  Zap
+  Zap,
+  Loader2
 } from 'lucide-react';
+
+// Optimized Lazy Imports
+const RetailerModule = lazy(() => import('./components/RetailerModule'));
+const ConsumerModule = lazy(() => import('./components/ConsumerModule'));
+const DriverModule = lazy(() => import('./components/DriverModule'));
+const AdminModule = lazy(() => import('./components/AdminModule'));
+
+const LoadingFallback = () => (
+  <div className="min-h-[60vh] flex flex-col items-center justify-center p-12 text-slate-400">
+    <div className="w-16 h-16 border-4 border-slate-200 border-t-indigo-600 rounded-full animate-spin mb-4"></div>
+    <p className="text-[10px] font-black uppercase tracking-[0.3em]">Igniting Engine...</p>
+  </div>
+);
 
 const App: React.FC = () => {
   const [role, setRole] = useState<UserRole | 'ADMIN' | null>(null);
   const [lang, setLang] = useState<'en' | 'hi'>('en');
 
-  const translations = {
+  const t = {
     en: {
       welcome: "KiranaConnect",
       tagline: "Empowering Local Bharat",
@@ -50,14 +60,11 @@ const App: React.FC = () => {
       logout: "प्रोफाइल बदलें",
       langToggle: "English"
     }
-  };
-
-  const t = translations[lang];
+  }[lang];
 
   if (!role) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-[#0F172A] relative overflow-hidden">
-        {/* Background Decorative Elements */}
         <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-indigo-600/20 rounded-full blur-[120px]"></div>
         <div className="absolute bottom-[-10%] left-[-10%] w-[400px] h-[400px] bg-blue-600/20 rounded-full blur-[100px]"></div>
 
@@ -72,7 +79,7 @@ const App: React.FC = () => {
              <p className="text-indigo-400 font-black uppercase text-[10px] tracking-[0.4em]">{t.tagline}</p>
           </div>
 
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 gap-4">
             {[
               { id: UserRole.RETAILER, label: t.retailer, sub: t.retailerSub, icon: Store, color: 'emerald' },
               { id: UserRole.CONSUMER, label: t.consumer, sub: t.consumerSub, icon: User, color: 'blue' },
@@ -81,9 +88,8 @@ const App: React.FC = () => {
               <button 
                 key={item.id}
                 onClick={() => setRole(item.id)}
-                className="w-full group relative p-1 rounded-[32px] transition-all hover:scale-[1.02] active:scale-95"
+                className="w-full group relative p-0.5 rounded-[32px] transition-all hover:scale-[1.02] active:scale-95"
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent rounded-[32px]"></div>
                 <div className="relative bg-slate-900/40 backdrop-blur-xl border border-white/10 p-6 rounded-[31px] flex items-center justify-between">
                   <div className="flex items-center gap-5">
                     <div className={`bg-${item.color}-500/10 p-4 rounded-2xl text-${item.color}-400 border border-${item.color}-500/20 shadow-lg`}>
@@ -124,7 +130,7 @@ const App: React.FC = () => {
     <div className="bg-[#F8FAFC] min-h-screen">
       <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50">
         <div className="max-w-screen-md mx-auto px-6 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 cursor-pointer" onClick={() => setRole(null)}>
             <div className="bg-slate-900 text-white p-2 rounded-xl shadow-lg">
               <Zap size={18} className="fill-white" />
             </div>
@@ -133,12 +139,11 @@ const App: React.FC = () => {
           <div className="flex items-center gap-3">
             <button className="p-3 text-slate-400 hover:text-slate-900 transition-colors relative">
                <Bell size={22} />
-               <span className="absolute top-2 right-2 w-2 h-2 bg-indigo-500 rounded-full border-2 border-white"></span>
+               <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-indigo-500 rounded-full border-2 border-white"></span>
             </button>
             <button 
               onClick={() => setRole(null)}
               className="p-3 text-slate-400 hover:text-red-500 transition-colors"
-              title={t.logout}
             >
               <LogOut size={22} />
             </button>
@@ -146,11 +151,13 @@ const App: React.FC = () => {
         </div>
       </header>
 
-      <main className="max-w-screen-md mx-auto">
-        {role === UserRole.RETAILER && <RetailerModule lang={lang} />}
-        {role === UserRole.CONSUMER && <ConsumerModule lang={lang} />}
-        {role === UserRole.DRIVER && <DriverModule lang={lang} />}
-        {role === 'ADMIN' && <AdminModule lang={lang} />}
+      <main className="max-w-screen-md mx-auto min-h-[calc(100vh-80px)]">
+        <Suspense fallback={<LoadingFallback />}>
+          {role === UserRole.RETAILER && <RetailerModule lang={lang} />}
+          {role === UserRole.CONSUMER && <ConsumerModule lang={lang} />}
+          {role === UserRole.DRIVER && <DriverModule lang={lang} />}
+          {role === 'ADMIN' && <AdminModule lang={lang} />}
+        </Suspense>
       </main>
     </div>
   );
