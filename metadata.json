@@ -1,0 +1,9 @@
+{
+  "name": "KiranaConnect MVP",
+  "description": "An all-in-one ecosystem for Kirana shops, consumers, and drivers in Tier-2/3 cities, featuring AI-powered voice ordering, digital udhaar ledger, and smart inventory management.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ]
+}
